@@ -60,7 +60,7 @@ char *chat_string_to_ansi_string(char *string)
 	char *result = malloc((strlen(string) * 2.5) + 1); // Final size should not exceed 2.5x original size
 	int offset = 0;
 	char *match;
-	while (match = strstr(string, "§")) {
+	while ((match = strstr(string, "§"))) {
 		// Copy everything until section sign
 		memcpy(result + offset, string, match - string);
 		offset += match - string;
