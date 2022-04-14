@@ -63,11 +63,11 @@ int main(int argc, char* argv[])
 	putchar('\n');
 	printf(WHITE "Version: " YELLOW "%s" GRAY " (protocol version %d)\n", result.version_name, result.protocol_version);
 	printf(WHITE "Players: " YELLOW "%d" WHITE " / " YELLOW "%d\n\n", result.online_players, result.max_players);
-	if (result.motd) printf(WHITE "%s\n", result.motd);
+	if (result.motd) printf(WHITE "%s\n\n", result.motd);
 	printf(WHITE);
 
 	// Clean up
-	free(result.version);
+	free(result.version_name);
 	if (result.motd) free(result.motd);
 
 	return 0;
