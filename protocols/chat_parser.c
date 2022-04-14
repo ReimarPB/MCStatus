@@ -6,6 +6,9 @@
 #include "../lib/cJSON/cJSON.h"
 #include "../lib/cJSON/cJSON_Utils.h"
 
+// Functions to parse Minecraft chat strings/objects
+// See https://wiki.vg/Chat
+
 struct Format {
 	bool is_color;           // Whether it is stored in the "color" property of a chat object, or its own property
 	char mc_code;            // The character after § in a formatted string
@@ -82,45 +85,61 @@ char *chat_object_to_ansi_string(cJSON *chat_object)
 	cJSON *json_text = cJSON_GetObjectItemCaseSensitive(chat_object, "text");
 	if (!cJSON_IsString(json_text) || json_text == NULL) return malloc(1);
 
-
 	// Get color property for later
 	cJSON *json_color = cJSON_GetObjectItemCaseSensitive(chat_object, "color");
 	char *color = cJSON_IsString(json_color) ? json_color->valuestring : NULL;
 
 	// Create format string
 	char *ansi_format = malloc(18);
-	ansi_format = "\x1b[";
+	strcpy(ansi_format, "\x1b[");
 	bool has_formatting = false;
 	for (int i = 0; i < sizeof(formats) / sizeof(struct Format); i++) {
 		if (
 			// If it's the same color as the color property
-			(formats[i].is_color && strcmp(color, formats[i].name) == 0) || 
+			(color && formats[i].is_color && strcmp(color, formats[i].name) == 0) || 
 			// or if it's special formatting and its own property is set to true
-			cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(json, formats[i].name))
+			cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(chat_object, formats[i].name))
 		) {
 			// Add the ANSI code + a semicolon to the format string
-			char *code = malloc(3);
-			snprintf(code, 3 "%d;", formats[i].ansi_code);
-			strcat(ansi_format, code);
-			free(code);
+			sprintf(ansi_format, "%s%d;", ansi_format, formats[i].ansi_code);
 			has_formatting = true;
 		}
 	}
 
-	// TODO merge object and call recursively
-
 	char *text = chat_string_to_ansi_string(json_text->valuestring);
 
-	if (!has_formatting)
-		return text;
-	
-	// Join formatting and text together, then return it	
-	char *result = malloc(strlen(format) + strlen(text));
-	strcat(result, format);
-	strcat(result, text);
-	free(format);
-	free(text);
-	return result;
+	// Join formatting and text together
+	char *result;
+	if (has_formatting) {
+		ansi_format[strlen(ansi_format) - 1] = 'm';
+		result = malloc(strlen(ansi_format) + strlen(text) + 1);
+		strcpy(result, ansi_format);
+		strcat(result, text);
+		free(text);
+	} else {
+		result = text;
+	}
 
+	free(ansi_format);
+
+	// Merge object and call recursively
+	cJSON *siblings = cJSON_GetObjectItemCaseSensitive(chat_object, "extra"), *sibling = NULL;
+	cJSON_ArrayForEach(sibling, siblings) {
+		// Create new object which merges the properties of the current and sibling object
+		cJSON *merged_sibling = cJSON_Duplicate(chat_object, false);
+		cJSONUtils_MergePatchCaseSensitive(merged_sibling, sibling);
+
+		// Recursively call this function to get sibling result
+		char *sibling_text = chat_object_to_ansi_string(merged_sibling);
+		//char *sibling_text = cJSON_GetObjectItemCaseSensitive(merged_sibling, "text")->valuestring;
+		result = realloc(result, strlen(result) + strlen(sibling_text) + 1);
+		strcat(result, sibling_text);
+
+		// Clean up
+		cJSON_Delete(merged_sibling);
+		free(sibling_text);
+	}
+	
+	return result;
 }
 
