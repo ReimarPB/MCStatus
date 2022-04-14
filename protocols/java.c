@@ -3,9 +3,9 @@
 #include <string.h>
 
 #ifdef _WIN32
-#include <winsock2.h>
+#	include <winsock2.h>
 #else
-#include <arpa/inet.h>
+#	include <arpa/inet.h>
 // TODO find the right imports
 #endif
 
@@ -29,6 +29,8 @@ int read_varint(int sock)
 	return value;
 }
 
+// Gets the server status of a modern Java server
+// See https://wiki.vg/Server_List_Ping
 struct mcstatus_result get_java_server_status(char *server, char *port)
 {
 	int sock = tcp_connect(server, port);
@@ -84,7 +86,7 @@ struct mcstatus_result get_java_server_status(char *server, char *port)
 
 		cJSON *version_name = cJSON_GetObjectItemCaseSensitive(version, "name");
 		if (cJSON_IsString(version_name))
-			result.version_name = version_name->valuestring;
+			result.version_name = chat_string_to_ansi_string(version_name->valuestring);
 
 		cJSON *protocol_version = cJSON_GetObjectItemCaseSensitive(version, "protocol");
 		if (cJSON_IsNumber(protocol_version))

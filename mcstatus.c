@@ -4,13 +4,13 @@
 #include <string.h>
 
 #ifdef _WIN32
-# pragma comment(lib, "Ws2_32.lib")
-# include <winsock2.h>
-# include <windows.h>
-//# include "lib/wingetopt/getopt.h";
+#	pragma comment(lib, "Ws2_32.lib")
+#	include <winsock2.h>
+#	include <windows.h>
+//#	include "lib/wingetopt/getopt.h";
 #else
-# include <unistd.h>
-# include <getopt.h>
+#	include <unistd.h>
+#	include <getopt.h>
 #endif
 
 #include "errors.h"
@@ -56,22 +56,19 @@ int main(int argc, char* argv[])
 	else
 		error("Invalid edition name", 69); // TODO
 
+	// Print result
 	printf(WHITE "\nServer status for " CYAN "%s\n", server);
 	printf(GRAY  "~~~~~~~~~~~~~~~~~~");
 	for (int i = 0; i < strlen(server); ++i) putchar('~');
 	putchar('\n');
 	printf(WHITE "Version: " YELLOW "%s" GRAY " (protocol version %d)\n", result.version_name, result.protocol_version);
 	printf(WHITE "Players: " YELLOW "%d" WHITE " / " YELLOW "%d\n\n", result.online_players, result.max_players);
-	if (result.motd != NULL) printf(WHITE "%s\n", result.motd);
+	if (result.motd) printf(WHITE "%s\n", result.motd);
 	printf(WHITE);
 
-	// Windows automatically prints an extra newline at the end
-	// TODO remove?
-#ifndef _WIN32
-	putchar('\n');
-#endif
-
-	//free(result.motd);
+	// Clean up
+	free(result.version);
+	if (result.motd) free(result.motd);
 
 	return 0;
 }
