@@ -41,7 +41,7 @@ struct mcstatus_result get_java_server_status(char *server, char *port)
 		uint8_t packet_id = 0x00;
 		uint8_t protocol_version[] = { 0xFF, 0xFF, 0xFF, 0xFF, 0x0F }; // -1 as VarInt
 		uint8_t server_len = strlen(server);
-		uint16_t port = htons(port);
+		uint16_t port_num = htons(port);
 		uint8_t next_state = 0x01; // Server status
 
 		send(sock, &packet_length,    1,                        0);
@@ -49,7 +49,7 @@ struct mcstatus_result get_java_server_status(char *server, char *port)
 		send(sock, &protocol_version, sizeof(protocol_version), 0);
 		send(sock, &server_len,       1,                        0);
 		send(sock, server,            server_len,               0);
-		send(sock, &port,             2,                        0);
+		send(sock, &port_num,         2,                        0);
 		send(sock, &next_state,       1,                        0);
 	}
 	{
