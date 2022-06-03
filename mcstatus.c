@@ -33,7 +33,7 @@ void print_usage(char* argv[])
 		"    host  The hostname or IP address of the server\n"
         "          May include an optional port number\n\n"
 		"Options:\n"
-		"    -?, -h, --help  Shows this help page\n"
+		"    -h, --help      Shows this help page\n"
 		"    -e, --edition   Sets the Minecraft edition whose protocol it will use. Must be one of:\n"
 		"                       java (default)  Minecraft Java Edition 1.7+\n"
 		"                       legacy-java     Minecraft Java Edition 1.6-\n",
@@ -59,21 +59,21 @@ int main(int argc, char* argv[])
 
 	struct option options[] = {
 		{ "edition", required_argument, NULL, 'e' },
-		{ "help",    no_argument,       NULL, 'h' }
+		{ "help",    no_argument,       NULL, 'h' },
+		{ NULL,      0,                 NULL,  0  }
 	};
 
 	char opt;
-	while ((opt = getopt_long(argc, argv, ":he:", options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "he:", options, NULL)) != -1) {
 		switch (opt) {
 			case 'e':
 				edition = optarg;
 				break;
-			case '?':
 			case 'h':
 				print_usage(argv);
 				return 0;
-			case ':':
-				printf("Try '%s -?' for more information'", argv[0]);
+			default:
+				printf("Try '%s --help' for more information'", argv[0]);
 				return 1;
 		}
 	}
