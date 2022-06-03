@@ -7,6 +7,6 @@ void error(char *message, int code);
 void socket_error(char *message);
 
 #ifdef _WIN32
-int windows_error(char *message);
+int console_mode_error(char *message);
 #endif
 
