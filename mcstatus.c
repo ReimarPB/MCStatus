@@ -7,7 +7,7 @@
 #	pragma comment(lib, "Ws2_32.lib")
 #	include <winsock2.h>
 #	include <windows.h>
-//#	include "lib/wingetopt/getopt.h";
+#	include "lib/wingetopt/src/getopt.h"
 #else
 #	include <unistd.h>
 #	include <getopt.h>
@@ -26,10 +26,6 @@
 
 int main(int argc, char* argv[])
 {
-	if (argc < 2) {
-		printf("Too few arguments");
-		return 0;
-	}
 
 #ifdef _WIN32
 	// Enable console colors
@@ -42,12 +38,34 @@ int main(int argc, char* argv[])
 		return console_mode_error("Failed to change console mode");
 #endif
 
-	char *server = strtok(argv[1], ":");
+	char *edition = "java";
+
+	struct option options[] = {
+		{ "edition", required_argument, NULL, 'e' }
+	};
+
+	char opt;
+	while ((opt = getopt_long(argc, argv, "e:", options, NULL)) != -1) {
+		switch (opt) {
+			case 'e':
+				edition = optarg;
+				break;
+			case '?':
+				return 1;
+		}
+	}
+
+	if (argc - optind < 1) {
+		printf("Too few arguments");
+		return 1;
+	}
+
+	// Parse hostname
+	char *server = strtok(argv[optind], ":");
 	char *port = strtok(NULL, ":");
 	if (port == NULL) port = "25565";
 
-	char *edition = "java"; // TODO
-	
+	// Parse edition
 	struct mcstatus_result result;
 	if (strcmp(edition, "java") == 0)
 		result = get_java_server_status(server, port);
