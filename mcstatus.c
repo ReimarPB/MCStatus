@@ -22,7 +22,24 @@
 #define CYAN    "\x1b[36m"
 #define GRAY    "\x1b[90m"
 
-// TODO add options, implement legacy java, implement bedrock
+// TODO implement legacy java, implement bedrock
+
+void print_usage(char* argv[])
+{
+	printf(
+		"\nPrints the status of a Minecraft server\n\n"
+		"Usage: %s <host>\n\n"
+		"Arguments:\n"
+		"    host  The hostname or IP address of the server\n"
+        "          May include an optional port number\n\n"
+		"Options:\n"
+		"    -?, -h, --help  Shows this help page\n"
+		"    -e, --edition   Sets the Minecraft edition whose protocol it will use. Must be one of:\n"
+		"                       java (default)  Minecraft Java Edition 1.7+\n"
+		"                       legacy-java     Minecraft Java Edition 1.6-\n",
+		argv[0]
+	);
+}
 
 int main(int argc, char* argv[])
 {
@@ -41,23 +58,29 @@ int main(int argc, char* argv[])
 	char *edition = "java";
 
 	struct option options[] = {
-		{ "edition", required_argument, NULL, 'e' }
+		{ "edition", required_argument, NULL, 'e' },
+		{ "help",    no_argument,       NULL, 'h' }
 	};
 
 	char opt;
-	while ((opt = getopt_long(argc, argv, "e:", options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, ":he:", options, NULL)) != -1) {
 		switch (opt) {
 			case 'e':
 				edition = optarg;
 				break;
 			case '?':
+			case 'h':
+				print_usage(argv);
+				return 0;
+			case ':':
+				printf("Try '%s -?' for more information'", argv[0]);
 				return 1;
 		}
 	}
 
 	if (argc - optind < 1) {
-		printf("Too few arguments");
-		return 1;
+		print_usage(argv);
+		return 0;
 	}
 
 	// Parse hostname
