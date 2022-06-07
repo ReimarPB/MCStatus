@@ -18,7 +18,9 @@
 #include "protocols/mcstatus_result.h"
 
 #define WHITE   "\x1b[0m"
+#define GREEN   "\x1b[32m"
 #define YELLOW  "\x1b[33m"
+#define RED     "\x1b[31m"
 #define CYAN    "\x1b[36m"
 #define GRAY    "\x1b[90m"
 
@@ -103,8 +105,14 @@ int main(int argc, char* argv[])
 	for (int i = 0; i < strlen(server); ++i) putchar('~');
 	putchar('\n');
 	printf(WHITE "Version: " YELLOW "%s" GRAY " (protocol version %d)\n", result.version_name, result.protocol_version);
-	printf(WHITE "Players: " YELLOW "%d" WHITE " / " YELLOW "%d\n\n", result.online_players, result.max_players);
-	if (result.motd) printf(WHITE "%s\n\n", result.motd);
+	printf(WHITE "Players: " YELLOW "%d" WHITE " / " YELLOW "%d\n", result.online_players, result.max_players);
+
+	const char* ping_color = GREEN;
+	if (result.ping > 300) ping_color = YELLOW;
+	if (result.ping > 600) ping_color = RED;
+	printf(WHITE "Ping: %s%d\n\n", ping_color, result.ping);
+
+	if (result.motd) printf("\n" WHITE "%s\n\n", result.motd);
 	printf(WHITE);
 
 	// Clean up

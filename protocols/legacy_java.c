@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 #include "mcstatus_result.h"
 
 // Names of protocol versions

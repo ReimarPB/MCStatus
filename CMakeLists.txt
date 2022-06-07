@@ -5,6 +5,7 @@ project(MCStatus VERSION 1.0)
 set(SOURCES
 	mcstatus.c
 	errors.c
+	ms.c
 	protocols/java.c
 	protocols/legacy_java.c
 	protocols/tcp.c

@@ -1,3 +1,5 @@
+#include "../ms.h"
+
 #ifndef MCSTATUS_RESULT_H
 #define MCSTATUS_RESULT_H
 
@@ -10,6 +12,7 @@ struct mcstatus_result {
 	char* motd;
 	char* favicon;
 	// TODO mod list
+	ms_t ping;
 };
 
 #endif

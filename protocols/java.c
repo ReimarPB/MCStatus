@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
+#include <time.h>
 
 #ifdef _WIN32
 #	include <winsock2.h>
@@ -10,6 +12,7 @@
 
 #include "../lib/cJSON/cJSON.h"
 #include "../errors.h"
+#include "../ms.h"
 #include "mcstatus_result.h"
 #include "chat_parser.h"
 #include "tcp.h"
@@ -37,20 +40,20 @@ struct mcstatus_result get_java_server_status(char *server, char *port)
 
 	// Send server status request	
 	{
-		uint8_t packet_length = 10 + strlen(server);
 		uint8_t packet_id = 0x00;
 		uint8_t protocol_version[] = { 0xFF, 0xFF, 0xFF, 0xFF, 0x0F }; // -1 as VarInt
 		uint8_t server_len = strlen(server);
 		uint16_t port_num = htons(port);
 		uint8_t next_state = 0x01; // Server status
+		uint8_t packet_length = sizeof(packet_id) + sizeof(protocol_version) + sizeof(server_len) + server_len + sizeof(port_num) + sizeof(next_state);
 
-		send(sock, &packet_length,    1,                        0);
-		send(sock, &packet_id,        1,                        0);
+		send(sock, &packet_length,    sizeof(packet_length),    0);
+		send(sock, &packet_id,        sizeof(packet_id),        0);
 		send(sock, &protocol_version, sizeof(protocol_version), 0);
-		send(sock, &server_len,       1,                        0);
+		send(sock, &server_len,       sizeof(server_len),       0);
 		send(sock, server,            server_len,               0);
-		send(sock, &port_num,         2,                        0);
-		send(sock, &next_state,       1,                        0);
+		send(sock, &port_num,         sizeof(port_num),         0);
+		send(sock, &next_state,       sizeof(next_state),       0);
 	}
 	{
 		uint8_t packet_length = 1;
@@ -61,13 +64,15 @@ struct mcstatus_result get_java_server_status(char *server, char *port)
 	}
 
 	// Receive response
-	int packet_length = read_varint(sock);
+	{
+		int packet_length = read_varint(sock);
 
-	uint8_t packet_type;
-	recv(sock, &packet_type, 1, 0);
+		uint8_t packet_type;
+		recv(sock, &packet_type, 1, 0);
 
-	if (packet_type != 0x00)
-		error("Invalid packet type received from server", 3);
+		if (packet_type != 0x00)
+			error("Invalid packet type received from server", 3);
+	}
 
 	int string_length = read_varint(sock);
 	
@@ -115,6 +120,35 @@ struct mcstatus_result get_java_server_status(char *server, char *port)
 
 	cJSON_Delete(json);
 	free(data);
+
+	ms_t ping_time = get_ms();
+
+	// Send ping
+	uint8_t packet_id = 0x01;
+	int64_t payload = 0;
+	uint8_t packet_length = sizeof(packet_id) + sizeof(payload);
+
+	send(sock, &packet_length, sizeof(packet_length), 0);
+	send(sock, &packet_id,     sizeof(packet_id),     0);
+	send(sock, &payload,       sizeof(payload),       0);
+
+	// Receive pong
+	int response_packet_length = read_varint(sock);
+
+	uint8_t packet_type;
+	recv(sock, &packet_type, 1, 0);
+
+	if (packet_type != 0x01)
+		error("Invalid packet type received from server", 3);
+
+	uint64_t response;
+	recv(sock, &response, sizeof(response), 0);
+
+	if (response != payload)
+		error("Invalid pong response received from server", 3);
+
+	// Calculate time difference
+	result.ping = get_ms() - ping_time;
 
 	tcp_disconnect(sock);
 
