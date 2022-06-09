@@ -12,10 +12,10 @@
 
 #include "../lib/cJSON/cJSON.h"
 #include "../errors.h"
-#include "../ms.h"
-#include "mcstatus_result.h"
-#include "chat_parser.h"
-#include "tcp.h"
+#include "../server_status.h"
+#include "../utils/chat_parser.h"
+#include "../utils/tcp.h"
+#include "../utils/ms.h"
 
 // https://wiki.vg/Protocol#VarInt_and_VarLong
 int read_varint(int sock)
@@ -34,7 +34,7 @@ int read_varint(int sock)
 
 // Gets the server status of a modern Java server
 // See https://wiki.vg/Server_List_Ping
-struct mcstatus_result get_java_server_status(char *server, char *port)
+struct server_status get_java_server_status(char *server, char *port)
 {
 	int sock = tcp_connect(server, port);
 
@@ -84,18 +84,18 @@ struct mcstatus_result get_java_server_status(char *server, char *port)
 	if (cJSON_IsInvalid(json))
 		error("Invalid JSON received from server", 3);
 
-	struct mcstatus_result result;
+	struct server_status status;
 
 	cJSON *version = cJSON_GetObjectItemCaseSensitive(json, "version");
 	if (cJSON_IsObject(version)) {
 
 		cJSON *version_name = cJSON_GetObjectItemCaseSensitive(version, "name");
 		if (cJSON_IsString(version_name))
-			result.version_name = chat_string_to_ansi_string(version_name->valuestring);
+			status.version_name = chat_string_to_ansi_string(version_name->valuestring);
 
 		cJSON *protocol_version = cJSON_GetObjectItemCaseSensitive(version, "protocol");
 		if (cJSON_IsNumber(protocol_version))
-			result.protocol_version = protocol_version->valueint;
+			status.protocol_version = protocol_version->valueint;
 
 	}
 	cJSON *players = cJSON_GetObjectItemCaseSensitive(json, "players");
@@ -103,19 +103,19 @@ struct mcstatus_result get_java_server_status(char *server, char *port)
 
 		cJSON *online_players = cJSON_GetObjectItemCaseSensitive(players, "online");
 		if (cJSON_IsNumber(online_players))
-			result.online_players = online_players->valueint;
+			status.online_players = online_players->valueint;
 		
 		cJSON *max_players = cJSON_GetObjectItemCaseSensitive(players, "max");
 		if (cJSON_IsNumber(max_players))
-			result.max_players = max_players->valueint;
+			status.max_players = max_players->valueint;
 		
 		// TODO sample players
 	}
 	cJSON* description = cJSON_GetObjectItemCaseSensitive(json, "description");
 	if (cJSON_IsObject(description)) {
-		result.motd = chat_object_to_ansi_string(description);
+		status.motd = chat_object_to_ansi_string(description);
 	} else if (cJSON_IsString(description)) {
-		result.motd = chat_string_to_ansi_string(description->valuestring);	
+		status.motd = chat_string_to_ansi_string(description->valuestring);
 	}
 
 	cJSON_Delete(json);
@@ -148,9 +148,9 @@ struct mcstatus_result get_java_server_status(char *server, char *port)
 		error("Invalid pong response received from server", 3);
 
 	// Calculate time difference
-	result.ping = get_ms() - ping_time;
+	status.ping = get_ms() - ping_time;
 
 	tcp_disconnect(sock);
 
-	return result;
+	return status;
 }

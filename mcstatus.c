@@ -14,8 +14,8 @@
 #endif
 
 #include "errors.h"
+#include "server_status.h"
 #include "protocols/protocols.h"
-#include "protocols/mcstatus_result.h"
 
 #define WHITE   "\x1b[0m"
 #define GREEN   "\x1b[32m"
@@ -91,33 +91,33 @@ int main(int argc, char* argv[])
 	if (port == NULL) port = "25565";
 
 	// Parse edition
-	struct mcstatus_result result;
+	struct server_status status;
 	if (strcmp(edition, "java") == 0)
-		result = get_java_server_status(server, port);
+		status = get_java_server_status(server, port);
 	else if (strcmp(edition, "legacy-java") == 0)
-		result = get_legacy_java_server_status(server, port);
+		status = get_legacy_java_server_status(server, port);
 	else
 		error("Invalid edition name", 69); // TODO
 
-	// Print result
+	// Print status
 	printf(WHITE "\nServer status for " CYAN "%s\n", server);
 	printf(GRAY  "~~~~~~~~~~~~~~~~~~");
 	for (int i = 0; i < strlen(server); ++i) putchar('~');
 	putchar('\n');
-	printf(WHITE "Version: " YELLOW "%s" GRAY " (protocol version %d)\n", result.version_name, result.protocol_version);
-	printf(WHITE "Players: " YELLOW "%d" WHITE " / " YELLOW "%d\n", result.online_players, result.max_players);
+	printf(WHITE "Version: " YELLOW "%s" GRAY " (protocol version %d)\n", status.version_name, status.protocol_version);
+	printf(WHITE "Players: " YELLOW "%d" WHITE " / " YELLOW "%d\n", status.online_players, status.max_players);
 
 	const char* ping_color = GREEN;
-	if (result.ping > 300) ping_color = YELLOW;
-	if (result.ping > 600) ping_color = RED;
-	printf(WHITE "Ping: %s%d\n\n", ping_color, result.ping);
+	if (status.ping > 300) ping_color = YELLOW;
+	if (status.ping > 600) ping_color = RED;
+	printf(WHITE "Ping: %s" MS "\n\n", ping_color, status.ping);
 
-	if (result.motd) printf("\n" WHITE "%s\n\n", result.motd);
+	if (status.motd) printf("\n" WHITE "%s\n\n", status.motd);
 	printf(WHITE);
 
 	// Clean up
-	free(result.version_name);
-	if (result.motd) free(result.motd);
+	free(status.version_name);
+	if (status.motd) free(status.motd);
 
 	return 0;
 }

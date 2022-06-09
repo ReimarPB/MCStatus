@@ -1,9 +1,9 @@
-#include "../ms.h"
+#include "utils/ms.h"
 
-#ifndef MCSTATUS_RESULT_H
-#define MCSTATUS_RESULT_H
+#ifndef SERVER_STATUS_H
+#define SERVER_STATUS_H
 
-struct mcstatus_result {
+struct server_status {
 	char *version_name;
 	int protocol_version;
 	int online_players;

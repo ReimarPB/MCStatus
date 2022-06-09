@@ -1,6 +1,6 @@
 #include <stdbool.h>
 
-#include "mcstatus_result.h"
+#include "../server_status.h"
 
 // Names of protocol versions
 // https://minecraft.fandom.com/wiki/Protocol_version
@@ -85,10 +85,10 @@ char *versions[] = {
 	"13w39a - 13w39b"
 };
 
-struct mcstatus_result get_legacy_java_server_status(char *server, char *port)
+struct server_status get_legacy_java_server_status(char *server, char *port)
 {
 	// TODO
-	struct mcstatus_result result;
-	return result;
+	struct server_status status;
+	return status;
 } 
 
