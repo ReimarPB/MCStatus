@@ -1,66 +1,64 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #ifdef _WIN32
-#include <windows.h>
+#	include <windows.h>
+#else
+#	include <errno.h>
 #endif
 
-// TODO add specific error codes
+#include "errors.h"
 
-// Print generic prefix/suffix for error messages
-void begin_error()
+bool error_colors = false;
+
+bool error_is_type(enum error error, enum error_type error_type)
 {
-	printf("\x1b[91mERROR: ");	
+	return error > error_type && error < error_type + 0x10;
 }
 
-void end_error()
+void error(enum error error, char* extra)
 {
-	printf("\x1b[0m");
-}
+	if (error_colors) printf("\x1b[91m");
+	printf("ERROR: ");	
 
-// Generic error handler with custom message and exit code
-int error(char *message, int code)
-{
-	begin_error();
-	printf("%s", message);
-	end_error();
-	exit(code);
-}
-
-enum socket_error {
-	SOCKET_ERROR_CREATE_SOCKET_FAILED = 0x01,
-	SOCKET_ERROR_INVALID_HOSTNAME     = 0x02,
-	SOCKET_ERROR_CONNECTION_FAILED    = 0x03,
-};
-
-// Error in sockets, should use WSAGetLastError on Windows
-int socket_error(char *message/*enum socket_error*/)
-{
-	begin_error();
-
-	/*char *message;
-	switch (socket_error) {
-		case SOCKET_ERROR_CREATE_SOCKET_FAILED: message = "Failed to create socket";     break;
-		case SOCKET_ERROR_INVALID_HOSTNAME:     message = "Invalid hostname";            break;
-		case SOCKET_ERROR_CONNECTION_FAILED:    message = "Failed to connect to server"; break;
-	}*/
+	// Get error message
+	char *message;
+	switch (error) {
+		case INPUT_ERROR_INVALID_EDITION_NAME:      message = "Invalid edition name";                       break;
+		case SOCKET_ERROR_CREATE_SOCKET_FAILED:     message = "Failed to create socket";                    break;
+		case SOCKET_ERROR_INVALID_HOSTNAME:         message = "Invalid hostname";                           break;
+		case SOCKET_ERROR_CONNECTION_FAILED:        message = "Failed to connect to server";                break;
+		case WINDOWS_ERROR_GET_CONSOLE_MODE_FAILED: message = "Failed to get console mode";                 break;
+		case WINDOWS_ERROR_SET_CONSOLE_MODE_FAILED: message = "Failed to set console mode";                 break;
+		case PROTOCOL_ERROR_INVALID_PACKET_ID:      message = "Invalid packet ID received from server";     break;
+		case PROTOCOL_ERROR_INVALID_JSON:           message = "Invalid JSON received from server";          break;
+		case PROTOCOL_ERROR_INVALID_PONG:           message = "Invalid pong response received from server"; break;
+	}
 	printf("%s\n", message);
+	if (extra) printf("%s\n", extra);
 
+	// Show error code
 #ifdef _WIN32
-	printf("Error code: %d\n", WSAGetLastError());
+	if (error_is_type(error, SOCKET_ERROR))
+		printf("Error code: %d\n", WSAGetLastError());
+	else if (error_is_type(error, WINDOWS_ERROR))
+		printf("Error code: %d\n", GetLastError());
+#else
+	if (error_is_type(error, SOCKET_ERROR))
+		printf("Error code: %d\n", errno);
 #endif
 
-	end_error();
-	exit(1);
+	if (error_colors) printf("\x1b[0m");
+	exit(error);
 }
 
-// Error while setting the console mode on Windows
-// Should not display colors, and should use GetLastError
-#ifdef _WIN32
-int console_mode_error(char *message)
+void assert_int(size_t actual, size_t expected, enum error err)
 {
-	printf("ERROR: %s\nError code: %d\n", message, GetLastError());
-	return 2;
+	if (actual == expected) return;
+
+	char *message = malloc(32);
+	snprintf(message, 32, "Expected %zd, got %zd", expected, actual);
+	error(err, message);
 }
-#endif
 

@@ -1,4 +1,4 @@
-#ifdef WIN32
+#ifdef _WIN32
 #	include <windows.h>
 #	define MS "%d"
 typedef DWORD ms_t;

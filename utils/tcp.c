@@ -24,7 +24,7 @@ int tcp_connect(char *server, char *port)
 	// Create socket
 	int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (sock == -1)
-		socket_error("Failed to create socket");
+		error(SOCKET_ERROR_CREATE_SOCKET_FAILED, NULL);
 	
 	// Get IP address from hostname
 	struct addrinfo hints, *addr;
@@ -33,11 +33,11 @@ int tcp_connect(char *server, char *port)
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
 	if (getaddrinfo(server, port, &hints, &addr) != 0)
-		socket_error("Invalid hostname");
+		error(SOCKET_ERROR_INVALID_HOSTNAME, NULL);
 	
 	// Connect to server	
 	if (connect(sock, addr->ai_addr, addr->ai_addrlen) != 0)
-		socket_error("Failed to connect to server");
+		error(SOCKET_ERROR_CONNECTION_FAILED, NULL);
 
 	freeaddrinfo(addr);
 
