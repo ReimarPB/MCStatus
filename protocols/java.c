@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include <time.h>
 
 #ifdef _WIN32
 #	include <winsock2.h>
@@ -68,7 +67,7 @@ struct server_status get_java_server_status(char *server, char *port)
 		int packet_length = read_varint(sock);
 
 		uint8_t packet_id;
-		recv(sock, &packet_id, 1, 0);
+		recv(sock, &packet_id, sizeof(packet_id), 0);
 
 		assert_int(packet_id, 0x00, PROTOCOL_ERROR_INVALID_PACKET_ID);
 	}
@@ -135,13 +134,11 @@ struct server_status get_java_server_status(char *server, char *port)
 	int response_packet_length = read_varint(sock);
 
 	uint8_t response_packet_id;
-	recv(sock, &response_packet_id, 1, 0);
-
+	recv(sock, &response_packet_id, sizeof(response_packet_id), 0);
 	assert_int(response_packet_id, 0x01, PROTOCOL_ERROR_INVALID_PACKET_ID);
 
 	uint64_t response;
 	recv(sock, &response, sizeof(response), 0);
-
 	assert_int(response, payload, PROTOCOL_ERROR_INVALID_PONG);
 
 	// Calculate time difference
