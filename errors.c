@@ -25,15 +25,15 @@ void error(enum error error, char* extra)
 	// Get error message
 	char *message;
 	switch (error) {
-		case INPUT_ERROR_INVALID_EDITION_NAME:      message = "Invalid edition name";                       break;
-		case SOCKET_ERROR_CREATE_SOCKET_FAILED:     message = "Failed to create socket";                    break;
-		case SOCKET_ERROR_INVALID_HOSTNAME:         message = "Invalid hostname";                           break;
-		case SOCKET_ERROR_CONNECTION_FAILED:        message = "Failed to connect to server";                break;
-		case WINDOWS_ERROR_GET_CONSOLE_MODE_FAILED: message = "Failed to get console mode";                 break;
-		case WINDOWS_ERROR_SET_CONSOLE_MODE_FAILED: message = "Failed to set console mode";                 break;
-		case PROTOCOL_ERROR_INVALID_PACKET_ID:      message = "Invalid packet ID received from server";     break;
-		case PROTOCOL_ERROR_INVALID_JSON:           message = "Invalid JSON received from server";          break;
-		case PROTOCOL_ERROR_INVALID_PONG:           message = "Invalid pong response received from server"; break;
+		case INPUT_ERROR_INVALID_EDITION_NAME:      message = "Invalid edition name";                                    break;
+		case SOCKET_ERROR_CREATE_SOCKET_FAILED:     message = "Failed to create socket";                                 break;
+		case SOCKET_ERROR_INVALID_HOSTNAME:         message = "Invalid hostname";                                        break;
+		case SOCKET_ERROR_CONNECTION_FAILED:        message = "Failed to connect to server";                             break;
+		case SYSTEM_ERROR_CONSOLE_MODE_FAILED:      message = "Failed to enable colors in the console";                  break;
+		case SYSTEM_ERROR_ICONV_FAILED:             message = "Failed to parse unicode text";                            break;
+		case PROTOCOL_ERROR_INVALID_PACKET_ID:      message = "Invalid packet ID received from server";                  break;
+		case PROTOCOL_ERROR_INVALID_JSON:           message = "Invalid JSON received from server";                       break;
+		case PROTOCOL_ERROR_INVALID_PONG:           message = "Invalid pong response received from server";              break;
 	}
 	printf("%s\n", message);
 	if (extra) printf("%s\n", extra);
@@ -42,7 +42,7 @@ void error(enum error error, char* extra)
 #ifdef _WIN32
 	if (error_is_type(error, SOCKET_ERROR))
 		printf("Error code: %d\n", WSAGetLastError());
-	else if (error_is_type(error, WINDOWS_ERROR))
+	else if (error_is_type(error, SYSTEM_ERROR))
 		printf("Error code: %d\n", GetLastError());
 #else
 	if (error_is_type(error, SOCKET_ERROR))

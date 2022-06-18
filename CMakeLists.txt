@@ -10,6 +10,7 @@ set(SOURCES
 	utils/tcp.c
 	utils/chat_parser.c
 	utils/ms.c
+	utils/text_converter.c
 	lib/cJSON/cJSON.c
 	lib/cJSON/cJSON_Utils.c
 )

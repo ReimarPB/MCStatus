@@ -1,6 +1,19 @@
-#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <uchar.h>
+#include <string.h>
 
+#ifdef _WIN32
+#	include <winsock2.h>
+#else
+#	include <arpa/inet.h>
+#endif
+
+#include "../errors.h"
 #include "../server_status.h"
+#include "../utils/tcp.h"
+#include "../utils/text_converter.h"
 
 // Names of protocol versions
 // https://minecraft.fandom.com/wiki/Protocol_version
@@ -85,10 +98,45 @@ char *versions[] = {
 	"13w39a - 13w39b"
 };
 
+// Gets the server status of a legacy Java Edition server (1.6 and below)
+// https://wiki.vg/Server_List_Ping#1.6
 struct server_status get_legacy_java_server_status(char *server, char *port)
 {
-	// TODO
+	ms_t ping_time = get_ms();
+
+	// Send request
+	int sock = tcp_connect(server, port);
+	uint8_t packet[] = { 0xFE, 0x01, 0xFA };
+	send(sock, &packet, sizeof(packet), 0);
+
+	// Get response
+	uint8_t packet_id;
+	recv(sock, &packet_id, 1, 0);
+	assert_int(packet_id, 0xFF, PROTOCOL_ERROR_INVALID_PACKET_ID);
+
+	uint16_t packet_length;
+	recv(sock, &packet_length, 2, MSG_WAITALL);
+	size_t string_length = ntohs(packet_length) * 2;
+
+	unsigned char *data = malloc(string_length);
+	recv(sock, data, string_length, MSG_WAITALL);
+
+	char *string = utf16be_to_utf8(data, string_length);
 	struct server_status status;
+
+	if (strncmp(data, "§1\0", 3) == 0) {
+		// TODO implement
+	} else {
+		// TODO add error handling
+		status.motd = strtok(string, "§");
+		status.online_players = atoi(strtok(NULL, "§"));
+		status.max_players = atoi(strtok(NULL, "§"));
+	}
+
+	status.ping = get_ms() - ping_time;
+
+	free(data);
+
 	return status;
 } 
 

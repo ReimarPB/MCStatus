@@ -52,10 +52,10 @@ int main(int argc, char* argv[])
 	HANDLE console_handle = GetStdHandle(STD_OUTPUT_HANDLE);
 	DWORD console_mode;
 	if (GetConsoleMode(console_handle, &console_mode) == 0)
-		return error(WINDOWS_ERROR_GET_CONSOLE_MODE_FAILED, NULL);		
+		return error(SYSTEM_ERROR_CONSOLE_MODE_FAILED, NULL);		
 	
 	if (SetConsoleMode(console_handle, console_mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING) == 0)
-		return error(WINDOWS_ERROR_SET_CONSOLE_MODE_FAILED, NULL);
+		return error(SYSTEM_ERROR_CONSOLE_MODE_FAILED, NULL);
 #endif
 
 	error_colors = true;
