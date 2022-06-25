@@ -12,53 +12,78 @@
 
 bool error_colors = false;
 
-bool error_is_type(enum error error, enum error_type error_type)
+void show_color()
 {
-	return error > error_type && error < error_type + 0x10;
+	if (error_colors) fprintf(stderr, "\x1b[31m");
 }
 
-void error(enum error error, char* extra)
+void reset_color()
 {
-	if (error_colors) printf("\x1b[91m");
-	printf("ERROR: ");	
+	if (error_colors) fprintf(stderr, "\x1b[0m");
+}
 
-	// Get error message
-	char *message;
-	switch (error) {
-		case INPUT_ERROR_INVALID_EDITION_NAME:      message = "Invalid edition name";                                    break;
-		case SOCKET_ERROR_CREATE_SOCKET_FAILED:     message = "Failed to create socket";                                 break;
-		case SOCKET_ERROR_INVALID_HOSTNAME:         message = "Invalid hostname";                                        break;
-		case SOCKET_ERROR_CONNECTION_FAILED:        message = "Failed to connect to server";                             break;
-		case SYSTEM_ERROR_CONSOLE_MODE_FAILED:      message = "Failed to enable colors in the console";                  break;
-		case SYSTEM_ERROR_ICONV_FAILED:             message = "Failed to parse unicode text";                            break;
-		case PROTOCOL_ERROR_INVALID_PACKET_ID:      message = "Invalid packet ID received from server";                  break;
-		case PROTOCOL_ERROR_INVALID_JSON:           message = "Invalid JSON received from server";                       break;
-		case PROTOCOL_ERROR_INVALID_PONG:           message = "Invalid pong response received from server";              break;
-	}
-	printf("%s\n", message);
-	if (extra) printf("%s\n", extra);
+void error_with_code(char *message, int code)
+{
+	show_color();
 
-	// Show error code
+
+	if (code) {
 #ifdef _WIN32
-	if (error_is_type(error, SOCKET_ERROR))
-		printf("Error code: %d\n", WSAGetLastError());
-	else if (error_is_type(error, SYSTEM_ERROR))
-		printf("Error code: %d\n", GetLastError());
+		char *error_message = NULL;
+		FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&error_message, 0, NULL);
+		fprintf(stderr, "%s: %s", message, error_message);
+		LocalFree(error_message);
 #else
-	if (error_is_type(error, SOCKET_ERROR))
-		printf("Error code: %d\n", errno);
+		perror(message);
 #endif
+	} else puts(message);
 
-	if (error_colors) printf("\x1b[0m");
-	exit(error);
+	reset_color();
+
+	if (code) exit(code);
+	else exit(EXIT_FAILURE);
 }
 
-void assert_int(size_t actual, size_t expected, enum error err)
+void try(int result, char* message)
+{
+	if (result != 0) error_with_code(message, result);
+}
+
+void socket_error(char *message)
+{
+#ifdef _WIN32
+	int code = WSAGetLastError();
+#else
+	int code = errno;
+#endif
+	error_with_code(message, code);
+}
+
+void system_error(char *message)
+{
+#ifdef _WIN32
+	int code = GetLastError();
+#else
+	int code = errno;
+#endif
+	error_with_code(message, code);
+}
+
+void error(char *message)
+{
+	show_color();
+	puts(message);
+	reset_color();
+	exit(EXIT_FAILURE);
+}
+
+void assert_int(size_t actual, size_t expected, char* error)
 {
 	if (actual == expected) return;
 
-	char *message = malloc(32);
-	snprintf(message, 32, "Expected %zd, got %zd", expected, actual);
-	error(err, message);
+	show_color();
+	fprintf(stderr, "%s: Expected %zd, got %zd\n", error, expected, actual);
+	reset_color();
+	exit(EXIT_FAILURE);
 }
 

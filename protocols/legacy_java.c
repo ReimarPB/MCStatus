@@ -112,7 +112,7 @@ struct server_status get_legacy_java_server_status(char *server, char *port)
 	// Get response
 	uint8_t packet_id;
 	recv(sock, &packet_id, 1, 0);
-	assert_int(packet_id, 0xFF, PROTOCOL_ERROR_INVALID_PACKET_ID);
+	assert_int(packet_id, 0xFF, "Received invalid packet ID from server");
 
 	uint16_t packet_length;
 	recv(sock, &packet_length, 2, MSG_WAITALL);

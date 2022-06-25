@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef _WIN32
 #	include <windows.h>
@@ -19,7 +20,7 @@ char *utf16be_to_utf8(char *text, size_t length)
 #else
 
 	iconv_t cd = iconv_open("UTF-8", "UTF-16BE");
-	if (cd == (iconv_t)-1) error(SYSTEM_ERROR_ICONV_FAILED, NULL);
+	if (cd == (iconv_t)-1) system_error("Failed to convert unicode text");
 
 	size_t in_length = length;
 	size_t out_length = length;
@@ -29,7 +30,7 @@ char *utf16be_to_utf8(char *text, size_t length)
 
 	char *outptr = (char*)result;
 	if (iconv(cd, &text, &in_length, &outptr, &out_length) == -1)
-		error(SYSTEM_ERROR_ICONV_FAILED, NULL);
+		system_error("Failed to convert unicode text");
 
 	iconv_close(cd);
 

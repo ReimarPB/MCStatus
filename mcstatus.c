@@ -52,10 +52,10 @@ int main(int argc, char* argv[])
 	HANDLE console_handle = GetStdHandle(STD_OUTPUT_HANDLE);
 	DWORD console_mode;
 	if (GetConsoleMode(console_handle, &console_mode) == 0)
-		return error(SYSTEM_ERROR_CONSOLE_MODE_FAILED, NULL);		
+		system_error("Failed to enable console colors");
 	
 	if (SetConsoleMode(console_handle, console_mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING) == 0)
-		return error(SYSTEM_ERROR_CONSOLE_MODE_FAILED, NULL);
+		system_error("Failed to enable console colors");
 #endif
 
 	error_colors = true;
@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
 	else if (strcmp(edition, "legacy-java") == 0)
 		status = get_legacy_java_server_status(server, port);
 	else
-		error(INPUT_ERROR_INVALID_EDITION_NAME, NULL);
+		error("Invalid edition name");
 
 	// Print status
 	printf(WHITE "\nServer status for " CYAN "%s\n", server);
@@ -122,5 +122,5 @@ int main(int argc, char* argv[])
 	free(status.version_name);
 	if (status.motd) free(status.motd);
 
-	return 0;
+	return EXIT_SUCCESS;
 }

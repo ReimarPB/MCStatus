@@ -69,7 +69,7 @@ struct server_status get_java_server_status(char *server, char *port)
 		uint8_t packet_id;
 		recv(sock, &packet_id, sizeof(packet_id), 0);
 
-		assert_int(packet_id, 0x00, PROTOCOL_ERROR_INVALID_PACKET_ID);
+		assert_int(packet_id, 0x00, "Received invalid packet ID from server");
 	}
 
 	int string_length = read_varint(sock);
@@ -80,7 +80,7 @@ struct server_status get_java_server_status(char *server, char *port)
 	// Parse response
 	cJSON *json = cJSON_ParseWithLength(data, string_length);
 	if (cJSON_IsInvalid(json))
-		error(PROTOCOL_ERROR_INVALID_JSON, NULL);
+		error("Received invalid JSON from server");
 
 	struct server_status status;
 
@@ -135,11 +135,11 @@ struct server_status get_java_server_status(char *server, char *port)
 
 	uint8_t response_packet_id;
 	recv(sock, &response_packet_id, sizeof(response_packet_id), 0);
-	assert_int(response_packet_id, 0x01, PROTOCOL_ERROR_INVALID_PACKET_ID);
+	assert_int(response_packet_id, 0x01, "Received invalid packet ID for pong response from server");
 
 	uint64_t response;
 	recv(sock, &response, sizeof(response), 0);
-	assert_int(response, payload, PROTOCOL_ERROR_INVALID_PONG);
+	assert_int(response, payload, "Received invalid pong payload from server");
 
 	// Calculate time difference
 	status.ping = get_ms() - ping_time;

@@ -5,6 +5,7 @@
 #	include <ws2tcpip.h>
 #	include <windows.h>
 #else
+#	include <errno.h>
 #	include <netdb.h>
 #	include <sys/types.h>
 #	include <arpa/inet.h>
@@ -24,7 +25,7 @@ int tcp_connect(char *server, char *port)
 	// Create socket
 	int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (sock == -1)
-		error(SOCKET_ERROR_CREATE_SOCKET_FAILED, NULL);
+		socket_error("Failed to create socket");
 	
 	// Get IP address from hostname
 	struct addrinfo hints, *addr;
@@ -33,11 +34,11 @@ int tcp_connect(char *server, char *port)
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
 	if (getaddrinfo(server, port, &hints, &addr) != 0)
-		error(SOCKET_ERROR_INVALID_HOSTNAME, NULL);
+		socket_error("Invalid hostname");
 	
 	// Connect to server	
 	if (connect(sock, addr->ai_addr, addr->ai_addrlen) != 0)
-		error(SOCKET_ERROR_CONNECTION_FAILED, NULL);
+		socket_error("Unable to connect to server");
 
 	freeaddrinfo(addr);
 
