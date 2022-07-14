@@ -122,19 +122,29 @@ struct server_status get_legacy_java_server_status(char *server, char *port)
 	recv(sock, data, string_length, MSG_WAITALL);
 
 	char *string = utf16be_to_utf8(data, string_length);
+
 	struct server_status status;
+	memset(&status, 0, sizeof(status));
 
 	if (strncmp(data, "§1\0", 3) == 0) {
 		// TODO implement
 	} else {
-		// TODO add error handling
-		status.motd = strtok(string, "§");
-		status.online_players = atoi(strtok(NULL, "§"));
-		status.max_players = atoi(strtok(NULL, "§"));
+
+		char *motd = malloc(string_length - 4);
+		int online_players, max_players;
+
+		int result = sscanf(string, "%[^§]§%d§%d", motd, &online_players, &max_players);
+		if (result < 3)	error("Server response is in invalid format");
+
+		status.motd = motd;
+		status.online_players = online_players;
+		status.max_players = max_players;
+
 	}
 
 	status.ping = get_ms() - ping_time;
 
+	tcp_disconnect(sock);
 	free(data);
 
 	return status;

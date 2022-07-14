@@ -46,7 +46,6 @@ void print_usage(char* argv[])
 
 int main(int argc, char* argv[])
 {
-
 #ifdef _WIN32
 	// Enable console colors
 	HANDLE console_handle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -107,7 +106,7 @@ int main(int argc, char* argv[])
 	printf(GRAY  "~~~~~~~~~~~~~~~~~~");
 	for (int i = 0; i < strlen(server); ++i) putchar('~');
 	putchar('\n');
-	printf(WHITE "Version: " YELLOW "%s" GRAY " (protocol version %d)\n", status.version_name, status.protocol_version);
+	if (status.version_name && status.protocol_version) printf(WHITE "Version: " YELLOW "%s" GRAY " (protocol version %d)\n", status.version_name, status.protocol_version);
 	printf(WHITE "Players: " YELLOW "%d" WHITE " / " YELLOW "%d\n", status.online_players, status.max_players);
 
 	const char* ping_color = GREEN;
@@ -119,7 +118,7 @@ int main(int argc, char* argv[])
 	printf(WHITE);
 
 	// Clean up
-	free(status.version_name);
+	if (status.version_name) free(status.version_name);
 	if (status.motd) free(status.motd);
 
 	return EXIT_SUCCESS;
