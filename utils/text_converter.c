@@ -16,6 +16,21 @@ char *utf16be_to_utf8(char *text, size_t length)
 {
 #ifdef _WIN32
 
+	wchar_t *wtext = (wchar_t *)text;
+	for (int i = 0; i < wcslen(wtext); i++)
+		wtext[i] = _byteswap_ushort(wtext[i]);
+
+	char *result = malloc(length);
+	memset(result, 0, length);
+
+	WideCharToMultiByte(CP_UTF8, 0, wtext, length / 2, result, length, NULL, NULL);
+
+	unsigned char *text2 = (unsigned char *)result;
+	for (int i = 0; i < length; i++) {
+		printf("%02x ", text2[i]);
+	}
+
+	return wtext;
 
 #else
 
