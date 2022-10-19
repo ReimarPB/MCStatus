@@ -122,19 +122,48 @@ struct server_status get_legacy_java_server_status(char *server, char *port)
 	recv(sock, data, string_length, MSG_WAITALL);
 
 	char *string = utf16be_to_utf8(data, string_length);
-
 	struct server_status status;
 	memset(&status, 0, sizeof(status));
 
-	if (strncmp(data, "§1\0", 3) == 0) {
-		// TODO implement
+	if (strncmp(string, "§1\0", 4) == 0) {
+
+		int index = 3;
+		for (int i = 0; i < 5; i++) {
+			free(string);
+			string = utf16be_to_utf8(data + index * 2, string_length - index * 2);
+
+			index += strlen(string) + 1;
+
+			int result = -1;
+			switch (i) {
+				case 0:
+					result = sscanf(string, "%d", &status.protocol_version);
+					break;
+				case 1:
+					status.version_name = strdup(string);
+					break;
+				case 2:
+					status.motd = strdup(string);
+					break;
+				case 3:
+					result = sscanf(string, "%d", &status.online_players);
+					break;
+				case 4:
+					result = sscanf(string, "%d", &status.max_players);
+					break;
+			}
+
+			if (result == 0) error("Server response is in an invalid format");
+		}
+		free(string);
+
 	} else {
 
 		char *motd = malloc(string_length - 4);
 		int online_players, max_players;
 
 		int result = sscanf(string, "%[^§]§%d§%d", motd, &online_players, &max_players);
-		if (result < 3)	error("Server response is in invalid format");
+		if (result < 3)	error("Server response is in an invalid format");
 
 		status.motd = motd;
 		status.online_players = online_players;
