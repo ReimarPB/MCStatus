@@ -16,6 +16,7 @@ char *utf16be_to_utf8(char *text, size_t length)
 {
 #ifdef _WIN32
 
+	error("This feature is not implemented on Windows yet");
 
 #else
 
