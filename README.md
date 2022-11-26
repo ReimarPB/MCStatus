@@ -2,6 +2,8 @@
 
 A command-line tool for viewing the current status of a Minecraft server, compatible with Windows and Unix-based systems.
 
+![Screenshot](screenshot.png)
+
 ## Building:
 
 Requirements: CMake
