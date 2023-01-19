@@ -10,22 +10,25 @@
 
 #include "errors.h"
 
+bool json;
 bool error_colors = false;
 
-void show_color()
+void begin_error()
 {
-	if (error_colors) fprintf(stderr, "\x1b[31m");
+	if (json) fprintf(stderr, "{\"error\":\"");
+	else if (error_colors) fprintf(stderr, "\x1b[31m");
 }
 
-void reset_color()
+void end_error()
 {
-	if (error_colors) fprintf(stderr, "\x1b[0m");
+	if (json) fprintf(stderr, "\"}");
+	else if (error_colors) fprintf(stderr, "\x1b[0m");
+	putchar('\n');
 }
 
 void error_with_code(char *message, int code)
 {
-	show_color();
-
+	begin_error();
 
 	if (code) {
 #ifdef _WIN32
@@ -36,9 +39,9 @@ void error_with_code(char *message, int code)
 #else
 		perror(message);
 #endif
-	} else puts(message);
+	} else fprintf(stderr, "%s", message);
 
-	reset_color();
+	end_error();
 
 	if (code) exit(code);
 	else exit(EXIT_FAILURE);
@@ -71,9 +74,9 @@ void system_error(char *message)
 
 void error(char *message)
 {
-	show_color();
-	puts(message);
-	reset_color();
+	begin_error();
+	fprintf(stderr, "%s", message);
+	end_error();
 	exit(EXIT_FAILURE);
 }
 
@@ -81,9 +84,9 @@ void assert_int(size_t actual, size_t expected, char* error)
 {
 	if (actual == expected) return;
 
-	show_color();
-	fprintf(stderr, "%s: Expected %zd, got %zd\n", error, expected, actual);
-	reset_color();
+	begin_error();
+	fprintf(stderr, "%s: Expected %zd, got %zd", error, expected, actual);
+	end_error();
 	exit(EXIT_FAILURE);
 }
 

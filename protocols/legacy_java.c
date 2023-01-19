@@ -41,6 +41,7 @@ struct server_status get_legacy_java_server_status(char *server, char *port)
 	char *string = utf16be_to_utf8(data, string_length);
 	struct server_status status;
 	memset(&status, 0, sizeof(status));
+	status.json = malloc(string_length + 32);
 
 	if (strncmp(string, "§1\0", 4) == 0) {
 
@@ -74,6 +75,26 @@ struct server_status get_legacy_java_server_status(char *server, char *port)
 		}
 		free(string);
 
+		sprintf(
+			status.json,
+			"{"
+				"\"version\":{"
+					"\"name\":\"%s\","
+					"\"protocol\":%d"
+				"},"
+				"\"players\":{"
+					"\"max\":%d,"
+					"\"online\":%d"
+				"},"
+				"\"description\":\"%s\""
+			"}",
+			status.version_name,
+			status.protocol_version,
+			status.max_players,
+			status.online_players,
+			status.motd
+		);
+
 	} else {
 
 		char *motd = malloc(string_length - 4);
@@ -85,6 +106,20 @@ struct server_status get_legacy_java_server_status(char *server, char *port)
 		status.motd = motd;
 		status.online_players = online_players;
 		status.max_players = max_players;
+
+		sprintf(
+			status.json,
+			"{"
+				"\"players\":{"
+					"\"max\":%d,"
+					"\"online\":%d"
+				"},"
+				"\"description\":\"%s\""
+			"}",
+			max_players,
+			online_players,
+			motd
+		);
 
 	}
 

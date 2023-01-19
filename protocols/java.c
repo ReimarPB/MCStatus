@@ -84,6 +84,8 @@ struct server_status get_java_server_status(char *server, char *port)
 
 	struct server_status status;
 
+	status.json = data;
+
 	cJSON *version = cJSON_GetObjectItemCaseSensitive(json, "version");
 	if (cJSON_IsObject(version)) {
 
@@ -117,7 +119,6 @@ struct server_status get_java_server_status(char *server, char *port)
 	}
 
 	cJSON_Delete(json);
-	free(data);
 
 	ms_t ping_time = get_ms();
 

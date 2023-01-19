@@ -25,7 +25,7 @@
 #define CYAN    "\x1b[36m"
 #define GRAY    "\x1b[90m"
 
-// TODO implement legacy java, implement bedrock
+bool json = false;
 
 void print_usage(char* argv[])
 {
@@ -37,6 +37,7 @@ void print_usage(char* argv[])
         "          May include an optional port number\n\n"
 		"Options:\n"
 		"    -h, --help      Shows this help page\n"
+		"    -j, --json      Print raw data as JSON\n"
 		"    -e, --edition   Sets the Minecraft edition whose protocol it will use. Must be one of:\n"
 		"                       java (default)  Minecraft Java Edition 1.7+\n"
 		"                       legacy-java     Minecraft Java Edition 1.6-\n",
@@ -58,20 +59,24 @@ int main(int argc, char* argv[])
 #endif
 
 	error_colors = true;
-
+	json = false;
 	char *edition = "java";
 
 	struct option options[] = {
 		{ "edition", required_argument, NULL, 'e' },
+		{ "json",    no_argument,       NULL, 'j' },
 		{ "help",    no_argument,       NULL, 'h' },
-		{ NULL,      0,                 NULL,  0  }
+		{ NULL,      0,                 NULL,  0  },
 	};
 
 	char opt;
-	while ((opt = getopt_long(argc, argv, "he:", options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "e:jh", options, NULL)) != -1) {
 		switch (opt) {
 			case 'e':
 				edition = optarg;
+				break;
+			case 'j':
+				json = true;
 				break;
 			case 'h':
 				print_usage(argv);
@@ -102,24 +107,30 @@ int main(int argc, char* argv[])
 		error("Invalid edition name");
 
 	// Print status
-	printf(WHITE "\nServer status for " CYAN "%s\n", server);
-	printf(GRAY  "~~~~~~~~~~~~~~~~~~");
-	for (int i = 0; i < strlen(server); ++i) putchar('~');
-	putchar('\n');
-	if (status.version_name && status.protocol_version) printf(WHITE "Version: " YELLOW "%s" GRAY " (protocol version %d)\n", status.version_name, status.protocol_version);
-	printf(WHITE "Players: " YELLOW "%d" WHITE " / " YELLOW "%d\n", status.online_players, status.max_players);
+	if (json) {
+		printf("%s\n", status.json);
+	} else {
+		printf(WHITE "\nServer status for " CYAN "%s\n", server);
+		printf(GRAY  "~~~~~~~~~~~~~~~~~~");
+		for (int i = 0; i < strlen(server); ++i) putchar('~');
+		putchar('\n');
+		if (status.version_name && status.protocol_version) printf(WHITE "Version: " YELLOW "%s" GRAY " (protocol version %d)\n", status.version_name, status.protocol_version);
+		printf(WHITE "Players: " YELLOW "%d" WHITE " / " YELLOW "%d\n", status.online_players, status.max_players);
 
-	const char* ping_color = GREEN;
-	if (status.ping > 300) ping_color = YELLOW;
-	if (status.ping > 600) ping_color = RED;
-	printf(WHITE "Ping: %s" MS "\n\n", ping_color, status.ping);
+		const char* ping_color = GREEN;
+		if (status.ping > 300) ping_color = YELLOW;
+		if (status.ping > 600) ping_color = RED;
+		printf(WHITE "Ping: %s" MS "\n\n", ping_color, status.ping);
 
-	if (status.motd) printf("\n" WHITE "%s\n\n", status.motd);
-	printf(WHITE);
+		if (status.motd) printf("\n" WHITE "%s\n\n", status.motd);
+		printf(WHITE);
+	}
 
 	// Clean up
 	if (status.version_name) free(status.version_name);
 	if (status.motd) free(status.motd);
+	free(status.json);
 
 	return EXIT_SUCCESS;
 }
+

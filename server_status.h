@@ -13,6 +13,7 @@ struct server_status {
 	char* favicon;
 	// TODO mod list
 	ms_t ping;
+	char *json;
 };
 
 #endif
