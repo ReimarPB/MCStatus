@@ -37,7 +37,7 @@ void print_usage(char* argv[])
         "          May include an optional port number\n\n"
 		"Options:\n"
 		"    -h, --help      Shows this help page\n"
-		"    -j, --json      Print raw data as JSON\n"
+		"    -j, --json      Prints raw data as JSON\n"
 		"    -e, --edition   Sets the Minecraft edition whose protocol it will use. Must be one of:\n"
 		"                       java (default)  Minecraft Java Edition 1.7+\n"
 		"                       legacy-java     Minecraft Java Edition 1.6-\n",

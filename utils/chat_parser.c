@@ -2,9 +2,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-#include "../lib/cJSON/cJSON.h"
-#include "../lib/cJSON/cJSON_Utils.h"
+#include <cjson/cJSON.h>
+#include <cjson/cJSON_Utils.h>
 
 // Functions to parse Minecraft chat strings/objects
 // See https://wiki.vg/Chat

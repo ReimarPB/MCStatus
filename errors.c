@@ -10,7 +10,7 @@
 
 #include "errors.h"
 
-bool json;
+extern bool json;
 bool error_colors = false;
 
 void begin_error()

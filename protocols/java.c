@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <cjson/cJSON.h>
 
 #ifdef _WIN32
 #	include <winsock2.h>
@@ -9,7 +10,6 @@
 #	include <arpa/inet.h>
 #endif
 
-#include "../lib/cJSON/cJSON.h"
 #include "../errors.h"
 #include "../server_status.h"
 #include "../utils/chat_parser.h"
@@ -76,6 +76,7 @@ struct server_status get_java_server_status(char *server, char *port)
 	
 	uint8_t *data = malloc(string_length);
 	recv(sock, data, string_length, MSG_WAITALL);
+	data[string_length] = '\0';
 
 	// Parse response
 	cJSON *json = cJSON_ParseWithLength(data, string_length);
