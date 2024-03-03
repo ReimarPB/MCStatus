@@ -6,11 +6,16 @@ A command-line tool for viewing the current status of a Minecraft server, compat
 
 ## Building:
 
-Requirements: CMake
+## Makefile (unix only)
 
 ```
-git clone https://github.com/ReimarPB/MCStatus
-git submodule init
+make
+sudo make install
+```
+
+## CMake
+
+```
 mkdir build
 cd build
 cmake ..

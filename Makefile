@@ -11,7 +11,7 @@ OBJS=                             \
 LIBS=-lcjson -lcjson_utils
 
 build/%.o: %.c $(wildcard *.h)
-	echo dirname "$@" | xargs -I'{}' mkdir -p '{}'
+	mkdir -p `dirname $@`
 	$(CC) -c -o $@ $< $(LIBS)
 
 all: $(OBJS)
@@ -19,6 +19,9 @@ all: $(OBJS)
 
 install:
 	cp build/mcstatus /usr/bin/mcstatus
+
+uninstall:
+	rm /usr/bin/mcstatus
 
 clean:
 	rm -r build
