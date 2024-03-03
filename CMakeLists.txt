@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(MCStatus VERSION 1.0)
+project(MCStatus VERSION 1.0.0)
 
 include(FetchContent)
 
