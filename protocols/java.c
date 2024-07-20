@@ -42,7 +42,7 @@ struct server_status get_java_server_status(char *server, char *port)
 		uint8_t packet_id = 0x00;
 		uint8_t protocol_version[] = { 0xFF, 0xFF, 0xFF, 0xFF, 0x0F }; // -1 as VarInt
 		uint8_t server_len = strlen(server);
-		uint16_t port_num = htons(port);
+		uint16_t port_num = htons(atoi(port));
 		uint8_t next_state = 0x01; // Server status
 		uint8_t packet_length = sizeof(packet_id) + sizeof(protocol_version) + sizeof(server_len) + server_len + sizeof(port_num) + sizeof(next_state);
 

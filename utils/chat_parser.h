@@ -1,4 +1,4 @@
-#include "../lib/cJSON/cJSON.h"
+#include <cjson/cJSON.h>
 
 char *chat_object_to_ansi_string(cJSON *chat_object);
 
