@@ -10,6 +10,9 @@ OBJS=                             \
 
 LIBS=-lcjson -lcjson_utils
 
+prefix ?= /usr/local
+bindir ?= $(prefix)/bin
+
 build/%.o: %.c $(wildcard *.h)
 	mkdir -p `dirname $@`
 	$(CC) -c -o $@ $< $(LIBS)
@@ -18,10 +21,10 @@ all: $(OBJS)
 	$(CC) -o mcstatus $(OBJS) $(LIBS)
 
 install:
-	cp build/mcstatus /usr/bin/mcstatus
+	cp mcstatus $(bindir)/mcstatus
 
 uninstall:
-	rm /usr/bin/mcstatus
+	rm $(bindir)/mcstatus
 
 clean:
 	rm -r build
