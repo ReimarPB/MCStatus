@@ -17,17 +17,22 @@
 #include "../utils/ms.h"
 
 // https://wiki.vg/Protocol#VarInt_and_VarLong
-int read_varint(int sock)
+int read_varint(int sock, int *packet_length)
 {
 	int value = 0;
 	int length = 0;
 	uint8_t byte; 
+
 	while (1) {
 		recv(sock, &byte, 1, 0);
 		value |= (byte & 0x7F) << (length * 7);
 		length++;
 		if ((byte & 0x80) != 0x80) break;
 	}
+
+	if (packet_length)
+		*packet_length -= length;
+
 	return value;
 }
 
@@ -63,19 +68,20 @@ struct server_status get_java_server_status(char *server, char *port)
 	}
 
 	// Receive response
+	int packet_length = read_varint(sock, NULL);
 	{
-		int packet_length = read_varint(sock);
-
 		uint8_t packet_id;
 		recv(sock, &packet_id, sizeof(packet_id), 0);
+		packet_length--;
 
 		assert_int(packet_id, 0x00, "Received invalid packet ID from server");
 	}
 
-	int string_length = read_varint(sock);
-	
-	uint8_t *data = malloc(string_length);
-	recv(sock, data, string_length, MSG_WAITALL);
+	// Some modded servers send multiple JSON strings in the same packet. Here we parse only the first one
+	int string_length = read_varint(sock, &packet_length);
+
+	uint8_t *data = malloc(packet_length);
+	recv(sock, data, packet_length, MSG_WAITALL);
 	data[string_length] = '\0';
 
 	// Parse response
@@ -122,26 +128,30 @@ struct server_status get_java_server_status(char *server, char *port)
 	cJSON_Delete(json);
 
 	ms_t ping_time = get_ms();
+	int64_t payload = 0;
 
 	// Send ping
-	uint8_t packet_id = 0x01;
-	int64_t payload = 0;
-	uint8_t packet_length = sizeof(packet_id) + sizeof(payload);
+	{
+		uint8_t packet_id = 0x01;
+		uint8_t packet_length = sizeof(packet_id) + sizeof(payload);
 
-	send(sock, &packet_length, sizeof(packet_length), 0);
-	send(sock, &packet_id,     sizeof(packet_id),     0);
-	send(sock, &payload,       sizeof(payload),       0);
+		send(sock, &packet_length, sizeof(packet_length), 0);
+		send(sock, &packet_id,     sizeof(packet_id),     0);
+		send(sock, &payload,       sizeof(payload),       0);
+	}
 
 	// Receive pong
-	int response_packet_length = read_varint(sock);
+	{
+		int packet_length = read_varint(sock, NULL);
 
-	uint8_t response_packet_id;
-	recv(sock, &response_packet_id, sizeof(response_packet_id), 0);
-	assert_int(response_packet_id, 0x01, "Received invalid packet ID for pong response from server");
+		uint8_t packet_id;
+		recv(sock, &packet_id, sizeof(packet_id), 0);
+		assert_int(packet_id, 0x01, "Received invalid packet ID for pong response from server");
 
-	uint64_t response;
-	recv(sock, &response, sizeof(response), 0);
-	assert_int(response, payload, "Received invalid pong payload from server");
+		uint64_t response;
+		recv(sock, &response, sizeof(response), 0);
+		assert_int(response, payload, "Received invalid pong payload from server");
+	}
 
 	// Calculate time difference
 	status.ping = get_ms() - ping_time;
