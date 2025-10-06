@@ -6,16 +6,17 @@ A command-line tool for viewing the current status of a Minecraft server, compat
 
 ## Building:
 
-## Makefile (unix only)
+### Makefile (unix only)
 
-```
+```sh
+sudo apt install libcjson-dev # or equivalent for your distro
 make
 sudo make install
 ```
 
-## CMake
+### CMake
 
-```
+```sh
 mkdir build
 cd build
 cmake ..
@@ -32,4 +33,6 @@ The `-e` option lets you select between different editions of Minecraft. Possibl
 - java (Modern Java Edition servers, 1.7 and above)
 - legacy-java (Legacy Java Edition servers, 1.6 and below)
 - ~~bedrock~~ (Bedrock Edition - Not implemented yet)
+
+For programmatic use, the `-j` option will print the raw JSON data.
 
