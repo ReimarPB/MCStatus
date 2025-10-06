@@ -6,7 +6,7 @@ void show_color();
 
 void hide_color();
 
-void error_with_code();
+void error_with_code(char *message, int code);
 
 void print_error(char *message);
 
