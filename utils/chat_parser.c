@@ -51,7 +51,7 @@ char *mc_code_to_ansi_string(char code)
 	for (int i = 0; i < sizeof(formats) / sizeof(struct Format); i++) {
 		if (formats[i].mc_code == code) return format_to_ansi(formats[i]);
 	}
-	return malloc(1);
+	return strdup("");
 }
 
 char *chat_string_to_ansi_string(char *string)
